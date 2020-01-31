@@ -4,6 +4,10 @@
 # Written by Qiang Wang (wangqiang2015 at ia.ac.cn)
 # --------------------------------------------------------
 import glob
+import shutil
+import os
+import datetime
+import subprocess
 from tools.test import *
 
 parser = argparse.ArgumentParser(description='PyTorch Tracking Demo')
@@ -14,6 +18,7 @@ parser.add_argument('--config', dest='config', default='config_davis.json',
                     help='hyper-parameter of SiamMask in json format')
 parser.add_argument('--base_path', default='../../data/tennis', help='datasets')
 parser.add_argument('--cpu', action='store_true', help='cpu mode')
+parser.add_argument('--writevid', action='store_true', help='save output as a video (requires ffmpeg)')
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -34,6 +39,13 @@ if __name__ == '__main__':
     # Parse Image file
     img_files = sorted(glob.glob(join(args.base_path, '*.jp*')))
     ims = [cv2.imread(imf) for imf in img_files]
+
+    # Set output dir
+    timestamp = '{:%Y%m%d-%H%M%S}'.format(datetime.datetime.now())
+    output_dir = os.path.join('./output', timestamp, 'frames')
+    output_video_path = os.path.join('./output', timestamp, 'output.mp4')
+    # Create dir
+    os.makedirs(output_dir, exist_ok=True)
 
     # Select ROI
     # cv2.namedWindow("SiamMask", cv2.WND_PROP_FULLSCREEN)
@@ -63,10 +75,16 @@ if __name__ == '__main__':
             # key = cv2.waitKey(1)
             # if key > 0:
             #     break
-            name = './output/' + str(f).zfill(5) + '.jpg'
-            cv2.imwrite(name, im)
+            filepath = os.path.join(output_dir, str(f).zfill(5) + '.jpg')
+            cv2.imwrite(filepath, im)
 
         toc += cv2.getTickCount() - tic
     toc /= cv2.getTickFrequency()
     fps = f / toc
     print('SiamMask Time: {:02.1f}s Speed: {:3.1f}fps (with visulization!)'.format(toc, fps))
+
+    if args.writevid:
+        print('Writing output to video', output_video_path)
+        # requires ffmpeg
+        shell_command = f'ffmpeg -r 20 -f image2 -i {output_dir}/%5d.jpg -crf 4 -vcodec libx264 -pix_fmt yuv420p {output_video_path}'.split(' ')
+        subprocess.run(shell_command)
