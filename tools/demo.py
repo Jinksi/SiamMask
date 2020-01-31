@@ -86,5 +86,5 @@ if __name__ == '__main__':
     if args.writevid:
         print('Writing output to video', output_video_path)
         # requires ffmpeg
-        shell_command = f'ffmpeg -r 20 -f image2 -i {output_dir}/%5d.jpg -crf 4 -vcodec libx264 -pix_fmt yuv420p {output_video_path}'.split(' ')
+        shell_command = f'ffmpeg -hide_banner -r 20 -f image2 -i {output_dir}/%5d.jpg -crf 4 -vcodec libx264 -pix_fmt yuv420p {output_video_path}'.split(' ')
         subprocess.run(shell_command)
