@@ -37,15 +37,25 @@ if __name__ == '__main__':
     siammask.eval().to(device)
 
     # Parse Image file
+    image_dirname = os.path.basename(args.base_path)
     img_files = sorted(glob.glob(join(args.base_path, '*.jp*')))
     ims = [cv2.imread(imf) for imf in img_files]
 
     # Set output dir
     timestamp = '{:%Y%m%d-%H%M%S}'.format(datetime.datetime.now())
-    output_dir = os.path.join('./output', timestamp, 'frames')
-    output_video_path = os.path.join('./output', timestamp, 'output.mp4')
+    output_dir = os.path.join('./output', f'{image_dirname}_{timestamp}')
+    output_frame_dir = os.path.join(output_dir, 'frames')
+    output_video_path = os.path.join(output_dir, 'output.mp4')
     # Create dir
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_frame_dir, exist_ok=True)
+
+    # define initial rectangles per test video
+    init_rects = {
+        'tennis': (300, 110, 165, 250),
+        'bream-test-a': (378, 682, 220, 146)
+    }
+    # select pre-defined initial rectangle
+    init_rect = init_rects[image_dirname]
 
     # Select ROI
     # cv2.namedWindow("SiamMask", cv2.WND_PROP_FULLSCREEN)
@@ -53,7 +63,8 @@ if __name__ == '__main__':
     try:
         # init_rect = cv2.selectROI('SiamMask', ims[0], False, False)
         # x, y, w, h = init_rect
-        x, y, w, h = 300, 110, 165, 250
+        x, y, w, h = init_rect
+
     except:
         exit()
 
@@ -75,7 +86,7 @@ if __name__ == '__main__':
             # key = cv2.waitKey(1)
             # if key > 0:
             #     break
-            filepath = os.path.join(output_dir, str(f).zfill(5) + '.jpg')
+            filepath = os.path.join(output_frame_dir, str(f).zfill(5) + '.jpg')
             cv2.imwrite(filepath, im)
 
         toc += cv2.getTickCount() - tic
@@ -86,5 +97,5 @@ if __name__ == '__main__':
     if args.writevid:
         print('Writing output to video', output_video_path)
         # requires ffmpeg
-        shell_command = f'ffmpeg -hide_banner -r 20 -f image2 -i {output_dir}/%5d.jpg -crf 4 -vcodec libx264 -pix_fmt yuv420p {output_video_path}'.split(' ')
+        shell_command = f'ffmpeg -hide_banner -r 20 -f image2 -i {output_frame_dir}/%5d.jpg -crf 4 -vcodec libx264 -pix_fmt yuv420p {output_video_path}'.split(' ')
         subprocess.run(shell_command)
