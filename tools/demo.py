@@ -36,11 +36,12 @@ if __name__ == '__main__':
     ims = [cv2.imread(imf) for imf in img_files]
 
     # Select ROI
-    cv2.namedWindow("SiamMask", cv2.WND_PROP_FULLSCREEN)
+    # cv2.namedWindow("SiamMask", cv2.WND_PROP_FULLSCREEN)
     # cv2.setWindowProperty("SiamMask", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     try:
-        init_rect = cv2.selectROI('SiamMask', ims[0], False, False)
-        x, y, w, h = init_rect
+        # init_rect = cv2.selectROI('SiamMask', ims[0], False, False)
+        # x, y, w, h = init_rect
+        x, y, w, h = 300, 110, 165, 250
     except:
         exit()
 
@@ -58,10 +59,12 @@ if __name__ == '__main__':
 
             im[:, :, 2] = (mask > 0) * 255 + (mask == 0) * im[:, :, 2]
             cv2.polylines(im, [np.int0(location).reshape((-1, 1, 2))], True, (0, 255, 0), 3)
-            cv2.imshow('SiamMask', im)
-            key = cv2.waitKey(1)
-            if key > 0:
-                break
+            # cv2.imshow('SiamMask', im)
+            # key = cv2.waitKey(1)
+            # if key > 0:
+            #     break
+            name = './output/' + str(f).zfill(5) + '.jpg'
+            cv2.imwrite(name, im)
 
         toc += cv2.getTickCount() - tic
     toc /= cv2.getTickFrequency()
