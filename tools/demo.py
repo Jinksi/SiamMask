@@ -68,6 +68,7 @@ if __name__ == "__main__":
         "tennis": [(300, 110, 165, 250)],
         "bream-test-a": [(378, 682, 220, 146)],
         "bream-test-b": [(1810, 538, 108, 92), (464, 660, 264, 124)],
+        "bream-test-c": [(739, 595, 87, 90), (1243, 433, 203, 86)],
     }
     # select pre-defined initial rectangles
     init_rects = init_rects[image_dirname]
