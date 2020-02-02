@@ -87,14 +87,35 @@ if __name__ == "__main__":
                 tracker = siamese_init(
                     im, target_pos, target_sz, siammask, cfg["hp"], device=device
                 )  # init tracker
-                active_trackers.append(tracker)
+                active_trackers.append(
+                    {"state": tracker, "score_history": [], "active": True}
+                )
         elif f > 0:  # tracking
             for index, tracker in enumerate(active_trackers):
-                tracker = siamese_track(
-                    tracker, im, mask_enable=True, refine_enable=True, device=device
+                if not tracker["active"]:
+                    continue
+
+                state = siamese_track(
+                    tracker["state"],
+                    im,
+                    mask_enable=True,
+                    refine_enable=True,
+                    device=device,
                 )  # track
-                location = tracker["ploygon"].flatten()
-                mask = tracker["mask"] > tracker["p"].seg_thr
+                location = state["ploygon"].flatten()
+                mask = state["mask"] > state["p"].seg_thr
+                score = state["score"]
+
+                tracker["state"] = state
+                tracker["score_history"].append(score)
+
+                # check tracker score history
+                if len(tracker["score_history"]) >= 3:
+                    last_scores = tracker["score_history"][-3:]
+                    # if last scores are not greater than threshold, deactivate tracker
+                    if not all([score > 0.8 for score in last_scores]):
+                        tracker["active"] = False
+                        continue
 
                 # write polyline and score to new image
                 # cannot write direct to image, as being processed multiple times
@@ -105,7 +126,7 @@ if __name__ == "__main__":
                 minY = min([point[0][1] for point in rect_points[0]])
                 cv2.putText(
                     image_out,
-                    str(round(tracker["score"], 2)),
+                    str(round(score, 2)),
                     (minX, minY),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     1,
