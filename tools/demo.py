@@ -10,6 +10,7 @@ import datetime
 import subprocess
 from tools.test import *
 import numpy as np
+from statistics import mean
 
 parser = argparse.ArgumentParser(description="PyTorch Tracking Demo")
 
@@ -110,10 +111,11 @@ if __name__ == "__main__":
                 tracker["score_history"].append(score)
 
                 # check tracker score history
-                if len(tracker["score_history"]) >= 3:
-                    last_scores = tracker["score_history"][-3:]
-                    # if last scores are not greater than threshold, deactivate tracker
-                    if not all([score > 0.8 for score in last_scores]):
+                if len(tracker["score_history"]) >= 5:
+                    last_scores = [float(x) for x in tracker["score_history"][-5:]]
+
+                    # if mean of last scores are not greater than threshold, deactivate tracker
+                    if mean(last_scores) < 0.7:
                         tracker["active"] = False
                         continue
 
